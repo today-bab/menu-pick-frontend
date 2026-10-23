@@ -1,15 +1,23 @@
 import { delay, http, HttpResponse } from 'msw'
 import type { PickResult, Restaurant } from '../api/types'
 
-function restaurant(name: string, distanceMeters: number): Restaurant {
-  return {
-    name,
-    distanceMeters,
-    placeUrl: `https://map.kakao.com/?q=${encodeURIComponent(name)}`,
-  }
+type FakeRestaurant = {
+  name: string
+  distanceMeters: number
 }
 
-export const fakeMenus: PickResult[] = [
+type FakeMenu = {
+  menu: string
+  restaurants: FakeRestaurant[]
+}
+
+const METERS_PER_DEGREE = 111_320
+
+function restaurant(name: string, distanceMeters: number): FakeRestaurant {
+  return { name, distanceMeters }
+}
+
+export const fakeMenus: FakeMenu[] = [
   {
     menu: '냉면',
     restaurants: [restaurant('평양면옥', 210), restaurant('함흥냉면', 540)],
@@ -43,12 +51,45 @@ export const fakeMenus: PickResult[] = [
   { menu: '파스타', restaurants: [restaurant('트라토리아', 520)] },
 ]
 
+/**
+ * 요청한 위치에서 거리만큼 떨어진 곳에 가짜 가게를 놓는다.
+ * 방향은 가게마다 다르게 해서 지도에서 핀이 겹치지 않게 한다.
+ */
+function placeAround(
+  { menu, restaurants }: FakeMenu,
+  lat: number,
+  lng: number,
+): PickResult {
+  return {
+    menu,
+    restaurants: restaurants.map(
+      ({ name, distanceMeters }, index): Restaurant => {
+        const bearing = ((index * 137 + menu.length * 50) * Math.PI) / 180
+        const north = distanceMeters * Math.cos(bearing)
+        const east = distanceMeters * Math.sin(bearing)
+        return {
+          name,
+          distanceMeters,
+          lat: lat + north / METERS_PER_DEGREE,
+          lng:
+            lng + east / (METERS_PER_DEGREE * Math.cos((lat * Math.PI) / 180)),
+          // 가짜 가게라 상세 페이지가 없어 이름 검색 링크를 쓴다.
+          placeUrl: `https://map.kakao.com/?q=${encodeURIComponent(name)}`,
+        }
+      },
+    ),
+  }
+}
+
 export const handlers = [
   http.get('*/api/menus/pick', async ({ request }) => {
     await delay(300)
-    const exclude = new URL(request.url).searchParams.get('exclude')
+    const params = new URL(request.url).searchParams
+    const exclude = params.get('exclude')
     const candidates = fakeMenus.filter(({ menu }) => menu !== exclude)
     const picked = candidates[Math.floor(Math.random() * candidates.length)]
-    return HttpResponse.json(picked)
+    return HttpResponse.json(
+      placeAround(picked, Number(params.get('lat')), Number(params.get('lng'))),
+    )
   }),
 ]

@@ -13,11 +13,15 @@ const naengmyeon: PickResult = {
     {
       name: '평양면옥',
       distanceMeters: 210,
+      lat: 37.502,
+      lng: 127.001,
       placeUrl: 'https://example.com/1',
     },
     {
       name: '함흥냉면',
       distanceMeters: 1540,
+      lat: 37.512,
+      lng: 127.008,
       placeUrl: 'https://example.com/2',
     },
   ],
@@ -26,7 +30,13 @@ const naengmyeon: PickResult = {
 const donkatsu: PickResult = {
   menu: '돈까스',
   restaurants: [
-    { name: '카츠정', distanceMeters: 130, placeUrl: 'https://example.com/3' },
+    {
+      name: '카츠정',
+      distanceMeters: 130,
+      lat: 37.501,
+      lng: 126.999,
+      placeUrl: 'https://example.com/3',
+    },
   ],
 }
 

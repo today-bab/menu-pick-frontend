@@ -8,6 +8,8 @@ const result: PickResult = {
     {
       name: '을밀대',
       distanceMeters: 120,
+      lat: 37.501,
+      lng: 127.001,
       placeUrl: 'http://place.map.kakao.com/1',
     },
   ],

@@ -1,6 +1,8 @@
 export type Restaurant = {
   name: string
   distanceMeters: number
+  lat: number
+  lng: number
   placeUrl: string
 }
 
