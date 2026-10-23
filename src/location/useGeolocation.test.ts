@@ -41,6 +41,7 @@ describe('useGeolocation', () => {
     })
 
     expect(coordinates).toEqual({ lat: 37.5, lng: 127 })
+    expect(result.current.coordinates).toEqual({ lat: 37.5, lng: 127 })
     expect(result.current.status).toBe('located')
   })
 
@@ -64,6 +65,7 @@ describe('useGeolocation', () => {
     })
 
     expect(coordinates).toBeNull()
+    expect(result.current.coordinates).toBeNull()
     expect(result.current.status).toBe('denied')
   })
 

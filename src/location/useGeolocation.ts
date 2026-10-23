@@ -25,6 +25,7 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
  */
 export function useGeolocation() {
   const [status, setStatus] = useState<GeolocationStatus>('idle')
+  const [coordinates, setCoordinates] = useState<Coordinates | null>(null)
   const coordinatesRef = useRef<Coordinates | null>(null)
 
   const locate = useCallback(async (): Promise<Coordinates | null> => {
@@ -40,6 +41,7 @@ export function useGeolocation() {
     try {
       const { coords } = await getCurrentPosition()
       coordinatesRef.current = { lat: coords.latitude, lng: coords.longitude }
+      setCoordinates(coordinatesRef.current)
       setStatus('located')
       return coordinatesRef.current
     } catch (error) {
@@ -50,5 +52,5 @@ export function useGeolocation() {
     }
   }, [])
 
-  return { status, locate }
+  return { status, coordinates, locate }
 }
