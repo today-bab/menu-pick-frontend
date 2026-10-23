@@ -1,6 +1,8 @@
-import type { PickErrorKind } from './api/types'
+import { useState } from 'react'
+import type { PickErrorKind, Restaurant } from './api/types'
 import { usePickMenu } from './api/usePickMenu'
 import { MenuResult } from './components/MenuResult'
+import { RestaurantMap } from './components/RestaurantMap'
 import {
   useGeolocation,
   type GeolocationStatus,
@@ -21,8 +23,17 @@ const errorNotices: Record<PickErrorKind, string> = {
 }
 
 function App() {
-  const { status, locate } = useGeolocation()
+  const { status, coordinates, locate } = useGeolocation()
   const { mutate, data, error, isPending } = usePickMenu()
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
+
+  // 따로 고르지 않았으면 가장 가까운 가게를 선택한 것으로 본다.
+  const selected =
+    data?.restaurants.find(({ placeUrl }) => placeUrl === selectedUrl) ??
+    data?.restaurants[0] ??
+    null
+  const selectRestaurant = ({ placeUrl }: Restaurant) =>
+    setSelectedUrl(placeUrl)
 
   const busy = status === 'locating' || isPending
   const notice = locationNotices[status] ?? (error && errorNotices[error.kind])
@@ -38,7 +49,22 @@ function App() {
     <main className="mx-auto flex min-h-svh max-w-md flex-col items-center gap-8 px-4 py-12">
       <h1 className="text-2xl font-bold">오늘 뭐 먹지</h1>
 
-      {data && <MenuResult result={data} />}
+      {data && (
+        <MenuResult
+          result={data}
+          selected={selected}
+          onSelect={selectRestaurant}
+        >
+          {coordinates && (
+            <RestaurantMap
+              me={coordinates}
+              restaurants={data.restaurants}
+              selected={selected}
+              onSelect={selectRestaurant}
+            />
+          )}
+        </MenuResult>
+      )}
       {notice && (
         <p role="alert" className="text-center text-red-600 dark:text-red-400">
           {notice}

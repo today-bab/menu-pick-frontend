@@ -5,7 +5,15 @@ import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import type { PickResult } from './api/types'
+import type { RestaurantMap } from './components/RestaurantMap'
 import { server } from './mocks/node'
+
+// 카카오 지도는 jsdom에서 그릴 수 없어 선택된 가게만 보여주는 가짜로 바꾼다.
+vi.mock('./components/RestaurantMap', () => ({
+  RestaurantMap: ({ selected }: Parameters<typeof RestaurantMap>[0]) => (
+    <div data-testid="map">{selected?.name}</div>
+  ),
+}))
 
 const naengmyeon: PickResult = {
   menu: '냉면',
@@ -94,10 +102,40 @@ describe('App', () => {
     expect(
       await screen.findByRole('heading', { name: '냉면' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /평양면옥.*210m/ })).toBeVisible()
     expect(
-      screen.getByRole('link', { name: /평양면옥.*210m/ }),
+      screen.getByRole('button', { name: /함흥냉면.*1\.5km/ }),
+    ).toBeVisible()
+  })
+
+  it('가게마다 그 가게의 상세 페이지 링크를 준다', async () => {
+    respondInOrder(naengmyeon)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    expect(
+      await screen.findByRole('link', { name: '평양면옥 카카오맵에서 보기' }),
     ).toHaveAttribute('href', 'https://example.com/1')
-    expect(screen.getByRole('link', { name: /함흥냉면.*1\.5km/ })).toBeVisible()
+    expect(
+      screen.getByRole('link', { name: '함흥냉면 카카오맵에서 보기' }),
+    ).toHaveAttribute('href', 'https://example.com/2')
+  })
+
+  it('처음에는 가장 가까운 가게가, 목록에서 누르면 그 가게가 지도에서 선택된다', async () => {
+    respondInOrder(naengmyeon)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+    expect(await screen.findByTestId('map')).toHaveTextContent('평양면옥')
+
+    await user.click(screen.getByRole('button', { name: /함흥냉면/ }))
+
+    expect(screen.getByTestId('map')).toHaveTextContent('함흥냉면')
+    expect(screen.getByRole('button', { name: /함흥냉면/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 
   it('다시 뽑으면 직전 메뉴를 제외하고 요청한다', async () => {
