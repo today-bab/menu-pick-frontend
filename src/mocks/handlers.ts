@@ -67,14 +67,16 @@ function placeAround(
         const bearing = ((index * 137 + menu.length * 50) * Math.PI) / 180
         const north = distanceMeters * Math.cos(bearing)
         const east = distanceMeters * Math.sin(bearing)
+        const placeLat = lat + north / METERS_PER_DEGREE
+        const placeLng =
+          lng + east / (METERS_PER_DEGREE * Math.cos((lat * Math.PI) / 180))
         return {
           name,
           distanceMeters,
-          lat: lat + north / METERS_PER_DEGREE,
-          lng:
-            lng + east / (METERS_PER_DEGREE * Math.cos((lat * Math.PI) / 180)),
-          // 가짜 가게라 상세 페이지가 없어 이름 검색 링크를 쓴다.
-          placeUrl: `https://map.kakao.com/?q=${encodeURIComponent(name)}`,
+          lat: placeLat,
+          lng: placeLng,
+          // 가짜 가게라 상세 페이지가 없어, 화면 지도와 같은 좌표에 핀을 찍는 링크를 쓴다.
+          placeUrl: `https://map.kakao.com/link/map/${encodeURIComponent(name)},${placeLat},${placeLng}`,
         }
       },
     ),
