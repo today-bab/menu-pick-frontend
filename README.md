@@ -19,3 +19,11 @@ pnpm dev
 | `pnpm format`       | Prettier로 포맷    |
 | `pnpm format:check` | 포맷 검사만        |
 | `pnpm preview`      | 빌드 결과 미리보기 |
+| `pnpm test`         | 테스트 실행        |
+| `pnpm test:watch`   | 테스트 감시 모드   |
+
+## 가짜 API
+
+백엔드 없이 개발할 수 있도록 [MSW](https://mswjs.io)로 `/api/menus/pick` 가짜 응답을 제공한다.
+`.env.development`의 `VITE_API_MOCKING=true`일 때 개발 서버에서 켜지고, 테스트에서는 항상 쓴다.
+가짜 데이터는 `src/mocks/handlers.ts`에 있다.
