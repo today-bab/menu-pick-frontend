@@ -1,32 +1,19 @@
-# React + TypeScript + Vite
+# menu-pick-frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+근처 음식점을 기준으로 오늘의 메뉴를 랜덤으로 뽑아 주는 사이트의 프론트엔드.
 
-Currently, two official plugins are available:
+## 실행
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+pnpm install
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 스크립트
+
+| 명령 | 설명 |
+|---|---|
+| `pnpm dev` | 개발 서버 |
+| `pnpm build` | 타입 검사 후 빌드 |
+| `pnpm lint` | oxlint |
+| `pnpm preview` | 빌드 결과 미리보기 |
