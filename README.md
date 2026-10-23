@@ -9,6 +9,11 @@ pnpm install
 pnpm dev
 ```
 
+개발 서버는 `/api` 요청을 로컬 백엔드(`http://localhost:8080`)로 넘긴다.
+백엔드는 [menu-pick-backend](../menu-pick-backend)를 먼저 실행한다.
+
+`.env.local`(git 제외)에 카카오 지도 JavaScript 키를 넣는다. 항목은 `.env.example` 참고.
+
 ## 스크립트
 
 | 명령                | 설명               |
@@ -25,5 +30,5 @@ pnpm dev
 ## 가짜 API
 
 백엔드 없이 개발할 수 있도록 [MSW](https://mswjs.io)로 `/api/menus/pick` 가짜 응답을 제공한다.
-`.env.development`의 `VITE_API_MOCKING=true`일 때 개발 서버에서 켜지고, 테스트에서는 항상 쓴다.
+테스트에서는 항상 쓰고, 개발 서버에서는 `.env.development.local`에 `VITE_API_MOCKING=true`를 넣으면 켜진다.
 가짜 데이터는 `src/mocks/handlers.ts`에 있다.
