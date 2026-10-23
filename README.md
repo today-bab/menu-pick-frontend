@@ -11,9 +11,11 @@ pnpm dev
 
 ## 스크립트
 
-| 명령 | 설명 |
-|---|---|
-| `pnpm dev` | 개발 서버 |
-| `pnpm build` | 타입 검사 후 빌드 |
-| `pnpm lint` | oxlint |
-| `pnpm preview` | 빌드 결과 미리보기 |
+| 명령                | 설명               |
+| ------------------- | ------------------ |
+| `pnpm dev`          | 개발 서버          |
+| `pnpm build`        | 타입 검사 후 빌드  |
+| `pnpm lint`         | oxlint             |
+| `pnpm format`       | Prettier로 포맷    |
+| `pnpm format:check` | 포맷 검사만        |
+| `pnpm preview`      | 빌드 결과 미리보기 |
