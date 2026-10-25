@@ -151,6 +151,68 @@ describe('App', () => {
     expect(excludes).toEqual([null, '냉면'])
   })
 
+  it('이전 결과로 돌아갔다가 다시 앞으로 갈 때 서버에 요청하지 않는다', async () => {
+    const excludes = respondInOrder(naengmyeon, donkatsu)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+    await user.click(await screen.findByRole('button', { name: /함흥냉면/ }))
+    await user.click(screen.getByRole('button', { name: '다시 뽑기' }))
+    expect(
+      await screen.findByRole('heading', { name: '돈까스' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '다음 →' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: '← 이전' }))
+
+    expect(screen.getByRole('heading', { name: '냉면' })).toBeInTheDocument()
+    // 결과가 바뀌면 직접 골랐던 가게 대신 가장 가까운 가게로 돌아간다.
+    expect(screen.getByTestId('map')).toHaveTextContent('평양면옥')
+    expect(screen.getByRole('button', { name: '← 이전' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: '다음 →' }))
+
+    expect(screen.getByRole('heading', { name: '돈까스' })).toBeInTheDocument()
+    expect(excludes).toEqual([null, '냉면'])
+  })
+
+  it('이전 결과를 보다가 다시 뽑으면 보고 있던 메뉴를 제외하고 그 뒤 기록은 버린다', async () => {
+    const excludes = respondInOrder(naengmyeon, donkatsu, donkatsu)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+    await user.click(await screen.findByRole('button', { name: '다시 뽑기' }))
+    await screen.findByRole('heading', { name: '돈까스' })
+    await user.click(screen.getByRole('button', { name: '← 이전' }))
+    await user.click(screen.getByRole('button', { name: '다시 뽑기' }))
+
+    expect(
+      await screen.findByRole('heading', { name: '돈까스' }),
+    ).toBeInTheDocument()
+    expect(excludes).toEqual([null, '냉면', '냉면'])
+    expect(screen.getByRole('button', { name: '다음 →' })).toBeDisabled()
+  })
+
+  it('다시 뽑다 실패해도 보던 결과는 남는다', async () => {
+    respondInOrder(naengmyeon)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+    await screen.findByRole('heading', { name: '냉면' })
+    server.use(
+      http.get(
+        '*/api/menus/pick',
+        () => new HttpResponse(null, { status: 404 }),
+      ),
+    )
+    await user.click(screen.getByRole('button', { name: '다시 뽑기' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '음식점이 없어요',
+    )
+    expect(screen.getByRole('heading', { name: '냉면' })).toBeInTheDocument()
+  })
+
   it('위치 권한을 거부하면 안내를 보여준다', async () => {
     stubLocation(1)
     const user = renderApp()

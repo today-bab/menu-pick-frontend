@@ -3,6 +3,7 @@ import type { PickErrorKind, Restaurant } from './api/types'
 import { usePickMenu } from './api/usePickMenu'
 import { MenuResult } from './components/MenuResult'
 import { RestaurantMap } from './components/RestaurantMap'
+import { usePickHistory } from './history/usePickHistory'
 import {
   useGeolocation,
   type GeolocationStatus,
@@ -22,10 +23,17 @@ const errorNotices: Record<PickErrorKind, string> = {
   unknown: '알 수 없는 오류가 났어요.',
 }
 
+const historyButtonClass =
+  'flex-1 rounded-xl border border-neutral-300 py-2 hover:border-orange-500 hover:text-orange-600 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-700'
+
 function App() {
   const { status, coordinates, locate } = useGeolocation()
-  const { mutate, data, error, isPending } = usePickMenu()
+  const { mutate, error, isPending } = usePickMenu()
+  const history = usePickHistory()
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
+
+  // 새로 뽑다 실패해도 보던 결과는 기록에 남아 있어 그대로 보여준다.
+  const data = history.current
 
   // 따로 고르지 않았으면 가장 가까운 가게를 선택한 것으로 본다.
   const selected =
@@ -41,8 +49,17 @@ function App() {
   async function handlePick() {
     const coordinates = await locate()
     if (coordinates) {
-      mutate({ ...coordinates, exclude: data?.menu })
+      mutate(
+        { ...coordinates, exclude: data?.menu },
+        { onSuccess: (result) => showResult(() => history.add(result)) },
+      )
     }
+  }
+
+  // 보이는 결과가 바뀌면 가게 선택도 다시 가장 가까운 가게로 돌린다.
+  function showResult(move: () => void) {
+    move()
+    setSelectedUrl(null)
   }
 
   return (
@@ -64,6 +81,27 @@ function App() {
             />
           )}
         </MenuResult>
+      )}
+      {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
+      {history.entries.length > 1 && (
+        <nav aria-label="이전 결과" className="flex w-full gap-2">
+          <button
+            type="button"
+            onClick={() => showResult(history.back)}
+            disabled={busy || !history.canBack}
+            className={historyButtonClass}
+          >
+            ← 이전
+          </button>
+          <button
+            type="button"
+            onClick={() => showResult(history.forward)}
+            disabled={busy || !history.canForward}
+            className={historyButtonClass}
+          >
+            다음 →
+          </button>
+        </nav>
       )}
       {notice && (
         <p role="alert" className="text-center text-red-600 dark:text-red-400">
