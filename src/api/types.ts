@@ -11,6 +11,12 @@ export type PickResult = {
   restaurants: Restaurant[]
 }
 
+/** 대분류(예: 한식)와 그 안에서 근처에 있는 메뉴들. */
+export type MenuCategory = {
+  name: string
+  menus: string[]
+}
+
 export type PickRequest = {
   lat: number
   lng: number
