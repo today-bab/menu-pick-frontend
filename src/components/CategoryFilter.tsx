@@ -6,7 +6,8 @@ type CategoryFilterProps = {
   categories: MenuCategory[]
   exclusions: MenuExclusions
   onToggleCuisine: (cuisine: string) => void
-  onToggleMenu: (menu: string) => void
+  /** 대분류를 뺀 상태면 예외로 다룰 수 있도록 메뉴가 속한 대분류도 함께 알린다. */
+  onToggleMenu: (menu: string, cuisine: string) => void
 }
 
 const chipClass =
@@ -82,7 +83,7 @@ export function CategoryFilter({
                           type="button"
                           aria-pressed={excluded}
                           disabled={cuisineExcluded}
-                          onClick={() => onToggleMenu(menu)}
+                          onClick={() => onToggleMenu(menu, name)}
                           className={`${chipClass} ${
                             excluded ? excludedClass : includedClass
                           }`}
