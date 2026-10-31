@@ -51,8 +51,12 @@ export function CategoryFilter({
         <span aria-hidden="true">{open ? '▴' : '▾'}</span>
       </button>
 
+      {/* 메뉴가 많아도 화면을 다 차지하지 않도록 절반 높이까지만 펼치고 안에서 스크롤한다. */}
       {open && (
-        <div id={panelId} className="mt-3 flex flex-col gap-4">
+        <div
+          id={panelId}
+          className="mt-3 flex max-h-[50svh] flex-col gap-4 overflow-y-auto"
+        >
           {categories.map(({ name, menus }) => {
             const cuisineExcluded = exclusions.cuisines.includes(name)
             return (
