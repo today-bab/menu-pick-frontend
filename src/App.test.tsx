@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import type { PickResult } from './api/types'
+import type { MenuCategory, PickResult } from './api/types'
 import type { RestaurantMap } from './components/RestaurantMap'
+import { STORAGE_KEY } from './exclusions/useMenuExclusions'
 import { server } from './mocks/node'
 
 // 카카오 지도는 jsdom에서 그릴 수 없어 선택된 가게만 보여주는 가짜로 바꾼다.
@@ -64,6 +65,27 @@ function stubLocation(code?: number) {
   })
 }
 
+const categories: MenuCategory[] = [
+  { name: '한식', menus: ['국밥', '냉면'] },
+  { name: '중식', menus: ['짜장면'] },
+]
+
+function respondCategories(response: () => Response) {
+  server.use(http.get('*/api/menus/categories', response))
+}
+
+// 뽑기 요청마다 쿼리를 모아 두고 결과를 차례로 돌려준다.
+function recordPicks(result: PickResult) {
+  const requests: URLSearchParams[] = []
+  server.use(
+    http.get('*/api/menus/pick', ({ request }) => {
+      requests.push(new URL(request.url).searchParams)
+      return HttpResponse.json(result)
+    }),
+  )
+  return requests
+}
+
 function respondInOrder(...results: PickResult[]) {
   const excludes: (string | null)[] = []
   server.use(
@@ -92,10 +114,13 @@ async function renderApp() {
 
 beforeEach(() => {
   stubLocation()
+  // 개발용 가짜 서버는 일부러 늦게 답해서 테스트에서는 바로 답하게 바꾼다.
+  respondCategories(() => HttpResponse.json({ categories }))
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  localStorage.clear()
 })
 
 describe('App', () => {
@@ -257,6 +282,72 @@ describe('App', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       '음식점이 없어요',
+    )
+  })
+
+  it('제외한 대분류와 메뉴를 뽑기 요청에 함께 보낸다', async () => {
+    const requests = recordPicks(naengmyeon)
+    const user = await renderApp()
+
+    await user.click(await screen.findByRole('button', { name: /제외할 메뉴/ }))
+    await user.click(screen.getByRole('button', { name: '중식 전체' }))
+    await user.click(screen.getByRole('button', { name: '국밥' }))
+    expect(
+      screen.getByRole('button', { name: /제외할 메뉴/ }),
+    ).toHaveTextContent('(2개 제외 중)')
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    await screen.findByRole('heading', { name: '냉면' })
+    expect(requests[0].getAll('excludeCuisine')).toEqual(['중식'])
+    expect(requests[0].getAll('excludeMenu')).toEqual(['국밥'])
+  })
+
+  it('다시 접속해도 저장해 둔 제외 설정으로 뽑는다', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ cuisines: ['한식'], menus: ['짜장면'] }),
+    )
+    const requests = recordPicks(donkatsu)
+    const user = await renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    await screen.findByRole('heading', { name: '돈까스' })
+    expect(requests[0].getAll('excludeCuisine')).toEqual(['한식'])
+    expect(requests[0].getAll('excludeMenu')).toEqual(['짜장면'])
+  })
+
+  it('카테고리를 불러오지 못하면 제외 설정 없이 뽑기만 보여준다', async () => {
+    respondCategories(() => new HttpResponse(null, { status: 404 }))
+    const requests = recordPicks(naengmyeon)
+    const user = await renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    expect(
+      await screen.findByRole('heading', { name: '냉면' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /제외할 메뉴/ }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(requests[0].has('excludeCuisine')).toBe(false)
+    expect(requests[0].has('excludeMenu')).toBe(false)
+  })
+
+  it('제외한 것을 빼면 고를 메뉴가 없을 때 안내를 보여준다', async () => {
+    server.use(
+      http.get(
+        '*/api/menus/pick',
+        () => new HttpResponse(null, { status: 422 }),
+      ),
+    )
+    const user = await renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '제외한 메뉴를 빼면 근처에 고를 메뉴가 없어요.',
     )
   })
 })

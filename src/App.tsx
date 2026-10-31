@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { PickErrorKind, Restaurant } from './api/types'
+import { useMenuCategories } from './api/useMenuCategories'
 import { usePickMenu } from './api/usePickMenu'
+import { CategoryFilter } from './components/CategoryFilter'
 import { MenuResult } from './components/MenuResult'
 import { RestaurantMap } from './components/RestaurantMap'
+import { useMenuExclusions } from './exclusions/useMenuExclusions'
 import { usePickHistory } from './history/usePickHistory'
 import {
   useGeolocation,
@@ -31,6 +34,9 @@ function App() {
   const { status, coordinates, locate } = useGeolocation()
   const { mutate, error, isPending } = usePickMenu()
   const history = usePickHistory()
+  // 카테고리 조회가 실패해도 안내 없이 제외 설정만 숨기고, 뽑기는 그대로 쓸 수 있게 한다.
+  const { data: categories } = useMenuCategories(coordinates)
+  const { exclusions, toggleCuisine, toggleMenu } = useMenuExclusions()
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
 
   // 뽑기 전에도 내 주변 지도를 보여주려고 접속하자마자 위치를 조회한다.
@@ -56,7 +62,12 @@ function App() {
     const coordinates = await locate()
     if (coordinates) {
       mutate(
-        { ...coordinates, exclude: data?.menu },
+        {
+          ...coordinates,
+          exclude: data?.menu,
+          excludedCuisines: exclusions.cuisines,
+          excludedMenus: exclusions.menus,
+        },
         { onSuccess: (result) => showResult(() => history.add(result)) },
       )
     }
@@ -121,6 +132,14 @@ function App() {
             다음 →
           </button>
         </nav>
+      )}
+      {categories && (
+        <CategoryFilter
+          categories={categories}
+          exclusions={exclusions}
+          onToggleCuisine={toggleCuisine}
+          onToggleMenu={toggleMenu}
+        />
       )}
       {notice && (
         <p role="alert" className="text-center text-red-600 dark:text-red-400">
