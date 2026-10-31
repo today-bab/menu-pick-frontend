@@ -25,6 +25,8 @@ export type PickRequest = {
   excludedCuisines?: string[]
   /** 하나씩 골라 뺀 메뉴 (예: 국밥). */
   excludedMenus?: string[]
+  /** 대분류를 통째로 뺐어도 예외로 다시 넣은 메뉴 (예: 한식은 빼도 국밥은 먹는다). */
+  includedMenus?: string[]
 }
 
 export type PickErrorKind =

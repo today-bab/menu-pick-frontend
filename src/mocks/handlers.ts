@@ -118,9 +118,15 @@ export const handlers = [
     const params = new URL(request.url).searchParams
     const excludedCuisines = params.getAll('excludeCuisine')
     const excludedMenus = params.getAll('excludeMenu')
+    const includedMenus = params.getAll('includeMenu')
+    // 실제 서버처럼, 뺀 대분류의 메뉴라도 다시 넣은 것은 살리고 따로 뺀 메뉴는 항상 뺀다.
     const allowed = fakeMenus.filter(
       ({ cuisine, menu }) =>
-        !excludedCuisines.includes(cuisine) && !excludedMenus.includes(menu),
+        !(
+          (excludedCuisines.includes(cuisine) &&
+            !includedMenus.includes(menu)) ||
+          excludedMenus.includes(menu)
+        ),
     )
     if (allowed.length === 0) {
       return new HttpResponse(null, { status: 422 })

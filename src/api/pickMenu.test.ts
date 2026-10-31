@@ -68,6 +68,21 @@ describe('pickMenu', () => {
     expect(url.searchParams.getAll('excludeMenu')).toEqual(['국밥'])
   })
 
+  it('대분류를 빼고도 다시 넣은 메뉴를 같은 이름의 파라미터로 하나씩 보낸다', async () => {
+    const fetchMock = stubFetch(Response.json(result))
+
+    await pickMenu({
+      lat: 37.5,
+      lng: 127,
+      excludedCuisines: ['한식'],
+      includedMenus: ['국밥', '냉면'],
+    })
+
+    const url = fetchMock.mock.calls[0][0] as URL
+    expect(url.searchParams.getAll('excludeCuisine')).toEqual(['한식'])
+    expect(url.searchParams.getAll('includeMenu')).toEqual(['국밥', '냉면'])
+  })
+
   it('제외한 것이 없으면 제외 파라미터를 보내지 않는다', async () => {
     const fetchMock = stubFetch(Response.json(result))
 
@@ -76,11 +91,13 @@ describe('pickMenu', () => {
       lng: 127,
       excludedCuisines: [],
       excludedMenus: [],
+      includedMenus: [],
     })
 
     const url = fetchMock.mock.calls[0][0] as URL
     expect(url.searchParams.has('excludeCuisine')).toBe(false)
     expect(url.searchParams.has('excludeMenu')).toBe(false)
+    expect(url.searchParams.has('includeMenu')).toBe(false)
   })
 
   it.each([

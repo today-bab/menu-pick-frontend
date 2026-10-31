@@ -19,6 +19,7 @@ function pickUrl({
   exclude,
   excludedCuisines = [],
   excludedMenus = [],
+  includedMenus = [],
 }: PickRequest): URL {
   const base = import.meta.env.VITE_API_BASE_URL || window.location.origin
   const url = new URL('/api/menus/pick', base)
@@ -33,6 +34,9 @@ function pickUrl({
   }
   for (const menu of excludedMenus) {
     url.searchParams.append('excludeMenu', menu)
+  }
+  for (const menu of includedMenus) {
+    url.searchParams.append('includeMenu', menu)
   }
   return url
 }
