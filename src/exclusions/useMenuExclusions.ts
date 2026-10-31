@@ -111,9 +111,22 @@ export function useMenuExclusions() {
       if (!current.cuisines.includes(cuisine)) {
         return { ...current, menus: toggle(current.menus, menu) }
       }
-      const included = toggle(current.includedMenus[cuisine] ?? [], menu)
+      const currentIncluded = current.includedMenus[cuisine] ?? []
+      const individuallyExcluded = current.menus.includes(menu)
+      // 대분류를 빼기 전에 이 메뉴를 따로 빼 두었으면 예외로 넣어도 계속 빠져 보인다.
+      // 누를 때마다 보이는 상태가 뒤집히도록, 빠져 보이는 메뉴는 따로 뺀 것까지 풀고 예외로 넣는다.
+      const showingIncluded =
+        currentIncluded.includes(menu) && !individuallyExcluded
+      const included = showingIncluded
+        ? currentIncluded.filter((value) => value !== menu)
+        : currentIncluded.includes(menu)
+          ? currentIncluded
+          : [...currentIncluded, menu]
       return {
         ...current,
+        menus: individuallyExcluded
+          ? current.menus.filter((value) => value !== menu)
+          : current.menus,
         // 예외가 하나도 안 남으면 빈 목록 대신 키를 지워 저장 값을 깔끔하게 둔다.
         includedMenus:
           included.length > 0

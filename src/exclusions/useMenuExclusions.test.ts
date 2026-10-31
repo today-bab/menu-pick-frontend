@@ -76,6 +76,26 @@ describe('useMenuExclusions', () => {
     })
   })
 
+  it('따로 뺐던 메뉴도 대분류를 뺀 뒤 누르면 한 번에 다시 넣는다', () => {
+    const { result } = renderHook(() => useMenuExclusions())
+
+    act(() => result.current.toggleMenu('국밥', '한식'))
+    act(() => result.current.toggleCuisine('한식'))
+    act(() => result.current.toggleMenu('국밥', '한식'))
+    expect(result.current.exclusions).toEqual({
+      cuisines: ['한식'],
+      menus: [],
+      includedMenus: { 한식: ['국밥'] },
+    })
+
+    act(() => result.current.toggleMenu('국밥', '한식'))
+    expect(result.current.exclusions).toEqual({
+      cuisines: ['한식'],
+      menus: [],
+      includedMenus: {},
+    })
+  })
+
   it('대분류 제외를 풀면 그 대분류의 예외만 지워서 다시 빼도 되살아나지 않는다', () => {
     const { result } = renderHook(() => useMenuExclusions())
 
