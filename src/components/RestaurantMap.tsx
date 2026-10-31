@@ -33,6 +33,11 @@ export function RestaurantMap({
     if (!map) {
       return
     }
+    // 점이 하나뿐이면 setBounds가 최대로 확대해 버려서 내 위치만 가운데 둔다.
+    if (restaurants.length === 0) {
+      map.setCenter(new kakao.maps.LatLng(me.lat, me.lng))
+      return
+    }
     const bounds = new kakao.maps.LatLngBounds()
     for (const { lat, lng } of [me, ...restaurants]) {
       bounds.extend(new kakao.maps.LatLng(lat, lng))
