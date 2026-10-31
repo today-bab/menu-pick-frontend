@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { PickErrorKind, Restaurant } from './api/types'
 import { usePickMenu } from './api/usePickMenu'
 import { MenuResult } from './components/MenuResult'
@@ -31,6 +31,11 @@ function App() {
   const { mutate, error, isPending } = usePickMenu()
   const history = usePickHistory()
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
+
+  // 뽑기 전에도 내 주변 지도를 보여주려고 접속하자마자 위치를 조회한다.
+  useEffect(() => {
+    void locate()
+  }, [locate])
 
   // 새로 뽑다 실패해도 보던 결과는 기록에 남아 있어 그대로 보여준다.
   const data = history.current
@@ -82,6 +87,19 @@ function App() {
           )}
         </MenuResult>
       )}
+      {!data &&
+        (coordinates ? (
+          <RestaurantMap
+            me={coordinates}
+            restaurants={[]}
+            selected={null}
+            onSelect={() => {}}
+          />
+        ) : (
+          status === 'locating' && (
+            <div className="h-72 w-full animate-pulse rounded-xl bg-neutral-100 dark:bg-neutral-900" />
+          )
+        ))}
       {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
       {history.entries.length > 1 && (
         <nav aria-label="이전 결과" className="flex w-full gap-2">

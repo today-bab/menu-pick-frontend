@@ -75,12 +75,14 @@ function respondInOrder(...results: PickResult[]) {
   return excludes
 }
 
-function renderApp() {
+// 접속하자마자 위치를 조회하므로 그 조회가 끝나 뽑기 버튼이 풀릴 때까지 기다린다.
+async function renderApp() {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <App />
     </QueryClientProvider>,
   )
+  await screen.findByRole('button', { name: '메뉴 뽑기' })
   return userEvent.setup()
 }
 
@@ -93,9 +95,16 @@ afterEach(() => {
 })
 
 describe('App', () => {
+  it('접속하자마자 위치를 조회해 뽑기 전에도 지도를 보여준다', async () => {
+    await renderApp()
+
+    expect(await screen.findByTestId('map')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument()
+  })
+
   it('뽑기를 누르면 메뉴와 근처 가게를 보여준다', async () => {
     respondInOrder(naengmyeon)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
 
@@ -110,7 +119,7 @@ describe('App', () => {
 
   it('가게마다 그 가게의 상세 페이지 링크를 준다', async () => {
     respondInOrder(naengmyeon)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
 
@@ -124,10 +133,11 @@ describe('App', () => {
 
   it('처음에는 가장 가까운 가게가, 목록에서 누르면 그 가게가 지도에서 선택된다', async () => {
     respondInOrder(naengmyeon)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
-    expect(await screen.findByTestId('map')).toHaveTextContent('평양면옥')
+    await screen.findByRole('heading', { name: '냉면' })
+    expect(screen.getByTestId('map')).toHaveTextContent('평양면옥')
 
     await user.click(screen.getByRole('button', { name: /함흥냉면/ }))
 
@@ -140,7 +150,7 @@ describe('App', () => {
 
   it('다시 뽑으면 직전 메뉴를 제외하고 요청한다', async () => {
     const excludes = respondInOrder(naengmyeon, donkatsu)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
     await user.click(await screen.findByRole('button', { name: '다시 뽑기' }))
@@ -153,7 +163,7 @@ describe('App', () => {
 
   it('이전 결과로 돌아갔다가 다시 앞으로 갈 때 서버에 요청하지 않는다', async () => {
     const excludes = respondInOrder(naengmyeon, donkatsu)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
     await user.click(await screen.findByRole('button', { name: /함흥냉면/ }))
@@ -178,7 +188,7 @@ describe('App', () => {
 
   it('이전 결과를 보다가 다시 뽑으면 보고 있던 메뉴를 제외하고 그 뒤 기록은 버린다', async () => {
     const excludes = respondInOrder(naengmyeon, donkatsu, donkatsu)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
     await user.click(await screen.findByRole('button', { name: '다시 뽑기' }))
@@ -195,7 +205,7 @@ describe('App', () => {
 
   it('다시 뽑다 실패해도 보던 결과는 남는다', async () => {
     respondInOrder(naengmyeon)
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
     await screen.findByRole('heading', { name: '냉면' })
@@ -213,13 +223,12 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '냉면' })).toBeInTheDocument()
   })
 
-  it('위치 권한을 거부하면 안내를 보여준다', async () => {
+  it('접속할 때 위치 권한을 거부하면 지도 대신 안내를 보여준다', async () => {
     stubLocation(1)
-    const user = renderApp()
-
-    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+    await renderApp()
 
     expect(await screen.findByRole('alert')).toHaveTextContent('위치 권한')
+    expect(screen.queryByTestId('map')).not.toBeInTheDocument()
   })
 
   it('근처에 음식점이 없으면 안내를 보여준다', async () => {
@@ -229,7 +238,7 @@ describe('App', () => {
         () => new HttpResponse(null, { status: 404 }),
       ),
     )
-    const user = renderApp()
+    const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
 
