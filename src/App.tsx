@@ -80,7 +80,8 @@ function App() {
   }
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center gap-8 px-4 py-12">
+    // 아래 여백은 하단에 붙는 뽑기 버튼 영역이 맡아서, 버튼 밑에 빈 띠가 생기지 않게 위쪽만 띄운다.
+    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center gap-8 px-4 pt-12">
       <h1 className="text-2xl font-bold">오늘 뭐 먹지</h1>
 
       {data && (
@@ -141,26 +142,36 @@ function App() {
           onToggleMenu={toggleMenu}
         />
       )}
-      {notice && (
-        <p role="alert" className="text-center text-red-600 dark:text-red-400">
-          {notice}
-        </p>
-      )}
+      {/*
+        내용이 길어져도 스크롤하지 않고 바로 누를 수 있게 뽑기 버튼을 화면 아래에 붙여 둔다.
+        밑으로 지나가는 내용이 비치지 않도록 페이지와 같은 배경을 깔고,
+        오류 안내도 버튼과 함께 붙여서 내용에 묻혀 안 보이는 일이 없게 한다.
+      */}
+      <div className="sticky bottom-0 z-10 flex w-full flex-col gap-3 bg-white pt-3 pb-6 dark:bg-neutral-950">
+        {notice && (
+          <p
+            role="alert"
+            className="text-center text-red-600 dark:text-red-400"
+          >
+            {notice}
+          </p>
+        )}
 
-      <button
-        type="button"
-        onClick={handlePick}
-        disabled={busy}
-        className="w-full rounded-xl bg-orange-500 py-4 text-lg font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
-      >
-        {status === 'locating'
-          ? '위치 찾는 중…'
-          : isPending
-            ? '고르는 중…'
-            : data
-              ? '다시 뽑기'
-              : '메뉴 뽑기'}
-      </button>
+        <button
+          type="button"
+          onClick={handlePick}
+          disabled={busy}
+          className="w-full rounded-xl bg-orange-500 py-4 text-lg font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+        >
+          {status === 'locating'
+            ? '위치 찾는 중…'
+            : isPending
+              ? '고르는 중…'
+              : data
+                ? '다시 뽑기'
+                : '메뉴 뽑기'}
+        </button>
+      </div>
     </main>
   )
 }
