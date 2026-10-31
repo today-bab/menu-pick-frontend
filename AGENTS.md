@@ -6,11 +6,14 @@
 
 ## 문서 지도
 
-| 문서                                                 | 언제 읽나                                                           |
-| ---------------------------------------------------- | ------------------------------------------------------------------- |
-| [README.md](README.md)                               | 실행 방법, 스크립트 목록, 가짜 API(MSW) 사용법                      |
-| [docs/git-conventions.md](docs/git-conventions.md)   | 이슈·브랜치·커밋·PR·머지 규칙. **코드를 바꾸기 전에 반드시 읽는다** |
-| [.github/workflows/ci.yml](.github/workflows/ci.yml) | CI 단계(lint → format → test → build)                               |
+| 문서                                                                   | 언제 읽나                                                           |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [README.md](README.md)                                                 | 실행 방법, 스크립트 목록, 가짜 API(MSW) 사용법                      |
+| [docs/git-conventions.md](docs/git-conventions.md)                     | 이슈·브랜치·커밋·PR·머지 규칙. **코드를 바꾸기 전에 반드시 읽는다** |
+| [.github/workflows/ci.yml](.github/workflows/ci.yml)                   | CI 단계(lint → format → test → build)                               |
+| [.github/workflows/conventions.yml](.github/workflows/conventions.yml) | PR의 브랜치 이름·제목·`Closes #N` 검사                              |
+| [.github/ISSUE_TEMPLATE/](.github/ISSUE_TEMPLATE)                      | 이슈를 만들 때 쓰는 기능·버그 템플릿                                |
+| [.github/pull_request_template.md](.github/pull_request_template.md)   | PR 본문 템플릿                                                      |
 
 ## 관련 저장소
 
