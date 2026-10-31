@@ -317,6 +317,25 @@ describe('App', () => {
     expect(requests[0].getAll('excludeMenu')).toEqual(['짜장면'])
   })
 
+  it('뺀 대분류 안에서 예외로 다시 넣은 메뉴를 함께 보낸다', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        cuisines: ['한식'],
+        menus: [],
+        includedMenus: { 한식: ['냉면'] },
+      }),
+    )
+    const requests = recordPicks(naengmyeon)
+    const user = await renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    await screen.findByRole('heading', { name: '냉면' })
+    expect(requests[0].getAll('excludeCuisine')).toEqual(['한식'])
+    expect(requests[0].getAll('includeMenu')).toEqual(['냉면'])
+  })
+
   it('카테고리를 불러오지 못하면 제외 설정 없이 뽑기만 보여준다', async () => {
     respondCategories(() => new HttpResponse(null, { status: 404 }))
     const requests = recordPicks(naengmyeon)

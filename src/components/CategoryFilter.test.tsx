@@ -95,7 +95,7 @@ describe('CategoryFilter', () => {
     )
   })
 
-  it('대분류를 통째로 빼면 그 안의 메뉴도 제외된 채로 고를 수 없다', async () => {
+  it('대분류를 통째로 빼면 그 안의 메뉴도 제외된 것으로 보여준다', async () => {
     const { user } = renderFilter({
       cuisines: ['한식'],
       menus: [],
@@ -108,10 +108,45 @@ describe('CategoryFilter', () => {
       'true',
     )
     for (const menu of ['국밥', '냉면']) {
-      const chip = screen.getByRole('button', { name: menu })
-      expect(chip).toHaveAttribute('aria-pressed', 'true')
-      expect(chip).toBeDisabled()
+      expect(screen.getByRole('button', { name: menu })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
     }
-    expect(screen.getByRole('button', { name: '짜장면' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '짜장면' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('뺀 대분류의 메뉴를 누르면 그 대분류와 함께 알린다', async () => {
+    const { user, onToggleMenu } = renderFilter({
+      cuisines: ['한식'],
+      menus: [],
+      includedMenus: {},
+    })
+    await user.click(screen.getByRole('button', { name: /제외할 메뉴/ }))
+
+    await user.click(screen.getByRole('button', { name: '냉면' }))
+
+    expect(onToggleMenu).toHaveBeenCalledWith('냉면', '한식')
+  })
+
+  it('뺀 대분류 안에서 예외로 다시 넣은 메뉴는 제외되지 않은 것으로 보여준다', async () => {
+    const { user } = renderFilter({
+      cuisines: ['한식'],
+      menus: [],
+      includedMenus: { 한식: ['국밥'] },
+    })
+    await user.click(screen.getByRole('button', { name: /제외할 메뉴/ }))
+
+    expect(screen.getByRole('button', { name: '국밥' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: '냉면' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 })

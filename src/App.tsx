@@ -67,6 +67,8 @@ function App() {
           exclude: data?.menu,
           excludedCuisines: exclusions.cuisines,
           excludedMenus: exclusions.menus,
+          // 서버는 메뉴 이름만 받으면 되니 대분류별로 나눠 둔 예외를 한 목록으로 편다.
+          includedMenus: Object.values(exclusions.includedMenus).flat(),
         },
         { onSuccess: (result) => showResult(() => history.add(result)) },
       )

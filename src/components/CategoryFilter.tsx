@@ -10,8 +10,7 @@ type CategoryFilterProps = {
   onToggleMenu: (menu: string, cuisine: string) => void
 }
 
-const chipClass =
-  'rounded-full border px-3 py-1 text-sm disabled:pointer-events-none'
+const chipClass = 'rounded-full border px-3 py-1 text-sm'
 const includedClass =
   'border-neutral-300 hover:border-orange-500 hover:text-orange-600 dark:border-neutral-700 dark:hover:text-orange-400'
 // 빠진 것은 흐리게 긋고, 눌러서 다시 넣을 수 있다는 걸 테두리로 남긴다.
@@ -74,15 +73,19 @@ export function CategoryFilter({
                 </button>
                 <ul className="mt-2 flex flex-wrap gap-2">
                   {menus.map((menu) => {
-                    // 대분류를 통째로 뺐으면 그 안의 메뉴도 빠진 것으로 보이고, 따로 고를 수 없다.
+                    // 대분류를 통째로 뺐으면 그 안의 메뉴도 빠진 것으로 보이지만,
+                    // 메뉴를 누르면 그것만 예외로 다시 넣을 수 있다.
                     const excluded =
-                      cuisineExcluded || exclusions.menus.includes(menu)
+                      (cuisineExcluded &&
+                        !(exclusions.includedMenus[name] ?? []).includes(
+                          menu,
+                        )) ||
+                      exclusions.menus.includes(menu)
                     return (
                       <li key={menu}>
                         <button
                           type="button"
                           aria-pressed={excluded}
-                          disabled={cuisineExcluded}
                           onClick={() => onToggleMenu(menu, name)}
                           className={`${chipClass} ${
                             excluded ? excludedClass : includedClass
