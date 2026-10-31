@@ -18,6 +18,7 @@ const locationNotices: Partial<Record<GeolocationStatus, string>> = {
 const errorNotices: Record<PickErrorKind, string> = {
   'invalid-location': '위치 정보가 올바르지 않아요.',
   'no-restaurants': '근처 1km 안에 음식점이 없어요.',
+  'all-excluded': '제외한 메뉴를 빼면 근처에 고를 메뉴가 없어요.',
   upstream: '음식점 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
   network: '서버에 연결할 수 없어요.',
   unknown: '알 수 없는 오류가 났어요.',

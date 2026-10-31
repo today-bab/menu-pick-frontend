@@ -15,10 +15,19 @@ export type PickRequest = {
   lat: number
   lng: number
   exclude?: string
+  /** 통째로 빼고 싶은 대분류 (예: 중식). */
+  excludedCuisines?: string[]
+  /** 하나씩 골라 뺀 메뉴 (예: 국밥). */
+  excludedMenus?: string[]
 }
 
 export type PickErrorKind =
-  'invalid-location' | 'no-restaurants' | 'upstream' | 'network' | 'unknown'
+  | 'invalid-location'
+  | 'no-restaurants'
+  | 'all-excluded'
+  | 'upstream'
+  | 'network'
+  | 'unknown'
 
 export class PickError extends Error {
   readonly kind: PickErrorKind
