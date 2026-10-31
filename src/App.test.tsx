@@ -75,13 +75,17 @@ function respondInOrder(...results: PickResult[]) {
   return excludes
 }
 
-// 접속하자마자 위치를 조회하므로 그 조회가 끝나 뽑기 버튼이 풀릴 때까지 기다린다.
-async function renderApp() {
+function mountApp() {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <App />
     </QueryClientProvider>,
   )
+}
+
+// 접속하자마자 위치를 조회하므로 그 조회가 끝나 뽑기 버튼이 풀릴 때까지 기다린다.
+async function renderApp() {
+  mountApp()
   await screen.findByRole('button', { name: '메뉴 뽑기' })
   return userEvent.setup()
 }
@@ -98,8 +102,17 @@ describe('App', () => {
   it('접속하자마자 위치를 조회해 뽑기 전에도 지도를 보여준다', async () => {
     await renderApp()
 
-    expect(await screen.findByTestId('map')).toBeInTheDocument()
+    expect(screen.getByTestId('map')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument()
+  })
+
+  it('접속 직후 위치를 찾는 동안에는 메뉴를 고르는 중이라고 하지 않는다', async () => {
+    mountApp()
+
+    expect(screen.getByRole('button', { name: '위치 찾는 중…' })).toBeDisabled()
+    expect(
+      await screen.findByRole('button', { name: '메뉴 뽑기' }),
+    ).toBeEnabled()
   })
 
   it('뽑기를 누르면 메뉴와 근처 가게를 보여준다', async () => {

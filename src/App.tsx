@@ -133,7 +133,13 @@ function App() {
         disabled={busy}
         className="w-full rounded-xl bg-orange-500 py-4 text-lg font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
       >
-        {busy ? '고르는 중…' : data ? '다시 뽑기' : '메뉴 뽑기'}
+        {status === 'locating'
+          ? '위치 찾는 중…'
+          : isPending
+            ? '고르는 중…'
+            : data
+              ? '다시 뽑기'
+              : '메뉴 뽑기'}
       </button>
     </main>
   )
