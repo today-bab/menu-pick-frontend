@@ -1,0 +1,43 @@
+name: 버그
+description: 기대와 다르게 동작하는 문제
+title: 'fix: '
+labels: [bug]
+body:
+  - type: textarea
+    id: actual
+    attributes:
+      label: 현상
+      description: 무엇이 잘못 동작하나. 화면 캡처나 콘솔 오류가 있으면 붙인다
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      placeholder: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: 기기·브라우저
+      placeholder: 예) iPhone 15 Safari, macOS Chrome
+    validations:
+      required: true
+  - type: dropdown
+    id: env
+    attributes:
+      label: 환경
+      options:
+        - 로컬
+        - 운영
+    validations:
+      required: true
