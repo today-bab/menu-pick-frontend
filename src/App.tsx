@@ -10,6 +10,9 @@ import { OverlaySheet } from './components/OverlaySheet'
 import { RestaurantMap } from './components/RestaurantMap'
 import { useMenuExclusions } from './exclusions/useMenuExclusions'
 import { usePickHistory } from './history/usePickHistory'
+import { MapLayout } from './layout/MapLayout'
+import { SheetContent } from './layout/SheetContent'
+import { useMapPadding } from './layout/useMapPadding'
 import { DEFAULT_LOCATION } from './location/defaultLocation'
 import {
   useGeolocation,
@@ -45,6 +48,7 @@ function App() {
   // 시트가 열릴 때마다 포커스를 다시 잡지 않도록 닫기 함수는 한 번만 만든다.
   const closeSheet = useCallback(() => setOpenSheet(null), [])
   const excludedCount = exclusions.cuisines.length + exclusions.menus.length
+  const { sheetRef, padding } = useMapPadding()
 
   // 뽑기 전에도 내 주변 지도를 보여주려고 접속하자마자 위치를 조회한다.
   useEffect(() => {
@@ -91,56 +95,80 @@ function App() {
   }
 
   return (
-    // 아래 여백은 하단에 붙는 뽑기 버튼 영역이 맡아서, 버튼 밑에 빈 띠가 생기지 않게 위쪽만 띄운다.
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center gap-8 px-4 pt-12">
-      <header className="flex w-full items-center justify-between">
-        <h1 className="text-2xl font-bold">오늘 뭐 먹지</h1>
-        <div className="flex gap-2">
-          {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
-          <CountButton
-            label="기록"
-            count={history.entries.length}
-            onClick={() => setOpenSheet('history')}
-            disabled={busy || history.entries.length === 0}
-          />
-          {/* 카테고리를 못 불러오면 고를 것이 없으니 제외 버튼도 숨긴다. */}
-          {categories && (
-            <CountButton
-              label="제외"
-              count={excludedCount}
-              onClick={() => setOpenSheet('exclusions')}
-            />
-          )}
-        </div>
-      </header>
-
-      {data ? (
-        <MenuResult
-          result={data}
-          selected={selected}
-          onSelect={selectRestaurant}
-        >
-          <div className="h-72 w-full overflow-hidden rounded-xl">
-            <RestaurantMap
-              center={center}
-              me={coordinates}
-              restaurants={data.restaurants}
-              selected={selected}
-              onSelect={selectRestaurant}
-            />
-          </div>
-        </MenuResult>
-      ) : (
-        <div className="h-72 w-full overflow-hidden rounded-xl">
+    <>
+      <MapLayout
+        sheetRef={sheetRef}
+        map={
           <RestaurantMap
             center={center}
             me={coordinates}
-            restaurants={[]}
-            selected={null}
-            onSelect={() => {}}
+            restaurants={data?.restaurants ?? []}
+            selected={selected}
+            onSelect={selectRestaurant}
+            padding={padding}
           />
-        </div>
-      )}
+        }
+        actions={
+          <>
+            {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
+            <CountButton
+              label="기록"
+              count={history.entries.length}
+              onClick={() => setOpenSheet('history')}
+              disabled={busy || history.entries.length === 0}
+            />
+            {/* 카테고리를 못 불러오면 고를 것이 없으니 제외 버튼도 숨긴다. */}
+            {categories && (
+              <CountButton
+                label="제외"
+                count={excludedCount}
+                onClick={() => setOpenSheet('exclusions')}
+              />
+            )}
+          </>
+        }
+        sheet={
+          <SheetContent
+            footer={
+              <>
+                {notice && (
+                  <p role="alert" className="text-center text-red-600">
+                    {notice}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handlePick}
+                  disabled={busy}
+                  className="h-[52px] w-full rounded-[14px] bg-orange-500 text-base font-bold text-white hover:brightness-95 disabled:opacity-60"
+                >
+                  {status === 'locating'
+                    ? '위치 찾는 중…'
+                    : isPending
+                      ? '고르는 중…'
+                      : data
+                        ? '다시 뽑기'
+                        : '메뉴 뽑기'}
+                </button>
+              </>
+            }
+          >
+            {data ? (
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <MenuResult
+                  result={data}
+                  selected={selected}
+                  onSelect={selectRestaurant}
+                />
+              </div>
+            ) : (
+              <p className="py-2 text-center text-[15px] text-gray-700">
+                근처 1km 안에서 골라 드려요
+              </p>
+            )}
+          </SheetContent>
+        }
+      />
       <OverlaySheet
         title="이번에 뽑은 메뉴"
         open={openSheet === 'history'}
@@ -169,34 +197,7 @@ function App() {
           />
         </OverlaySheet>
       )}
-      {/*
-        내용이 길어져도 스크롤하지 않고 바로 누를 수 있게 뽑기 버튼을 화면 아래에 붙여 둔다.
-        밑으로 지나가는 내용이 비치지 않도록 페이지와 같은 배경을 깔고,
-        오류 안내도 버튼과 함께 붙여서 내용에 묻혀 안 보이는 일이 없게 한다.
-      */}
-      <div className="sticky bottom-0 z-10 flex w-full flex-col gap-3 bg-white pt-3 pb-6">
-        {notice && (
-          <p role="alert" className="text-center text-red-600">
-            {notice}
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={handlePick}
-          disabled={busy}
-          className="w-full rounded-xl bg-orange-500 py-4 text-lg font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
-        >
-          {status === 'locating'
-            ? '위치 찾는 중…'
-            : isPending
-              ? '고르는 중…'
-              : data
-                ? '다시 뽑기'
-                : '메뉴 뽑기'}
-        </button>
-      </div>
-    </main>
+    </>
   )
 }
 
