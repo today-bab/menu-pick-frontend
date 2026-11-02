@@ -34,29 +34,11 @@ export function usePickHistory() {
     )
   }, [])
 
-  const back = useCallback(() => {
-    setHistory((history) =>
-      history.index > 0 ? { ...history, index: history.index - 1 } : history,
-    )
-  }, [])
-
-  const forward = useCallback(() => {
-    setHistory((history) =>
-      history.index < history.entries.length - 1
-        ? { ...history, index: history.index + 1 }
-        : history,
-    )
-  }, [])
-
   return {
     entries,
     index,
     current: entries[index] ?? null,
-    canBack: index > 0,
-    canForward: index < entries.length - 1,
     add,
     select,
-    back,
-    forward,
   }
 }

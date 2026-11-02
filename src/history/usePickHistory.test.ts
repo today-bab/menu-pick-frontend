@@ -16,12 +16,11 @@ function renderHistory(...menus: string[]) {
 }
 
 describe('usePickHistory', () => {
-  it('처음에는 보여줄 결과가 없고 어느 쪽으로도 갈 수 없다', () => {
+  it('처음에는 보여줄 결과가 없다', () => {
     const result = renderHistory()
 
     expect(result.current.current).toBeNull()
-    expect(result.current.canBack).toBe(false)
-    expect(result.current.canForward).toBe(false)
+    expect(result.current.entries).toEqual([])
   })
 
   it('결과를 더하면 마지막 결과를 보여준다', () => {
@@ -32,42 +31,12 @@ describe('usePickHistory', () => {
       '돈까스',
     ])
     expect(result.current.current?.menu).toBe('돈까스')
-    expect(result.current.canBack).toBe(true)
-    expect(result.current.canForward).toBe(false)
   })
 
-  it('뒤로 갔다가 앞으로 다시 갈 수 있다', () => {
+  it('이전 기록을 보는 중에 결과를 더해도 기록을 버리지 않고 맨 뒤에 더한다', () => {
     const result = renderHistory('냉면', '돈까스', '국밥')
 
-    act(() => result.current.back())
-    act(() => result.current.back())
-    expect(result.current.current?.menu).toBe('냉면')
-    expect(result.current.canBack).toBe(false)
-    expect(result.current.canForward).toBe(true)
-
-    act(() => result.current.forward())
-    expect(result.current.current?.menu).toBe('돈까스')
-    expect(result.current.canBack).toBe(true)
-    expect(result.current.canForward).toBe(true)
-  })
-
-  it('양 끝에서 더 가려고 하면 그대로 있는다', () => {
-    const result = renderHistory('냉면', '돈까스')
-
-    act(() => result.current.forward())
-    expect(result.current.current?.menu).toBe('돈까스')
-
-    act(() => result.current.back())
-    act(() => result.current.back())
-    expect(result.current.current?.menu).toBe('냉면')
-    expect(result.current.index).toBe(0)
-  })
-
-  it('뒤로 간 상태에서 결과를 더해도 기록을 버리지 않고 맨 뒤에 더한다', () => {
-    const result = renderHistory('냉면', '돈까스', '국밥')
-
-    act(() => result.current.back())
-    act(() => result.current.back())
+    act(() => result.current.select(0))
     act(() => result.current.add(pick('초밥')))
 
     expect(result.current.entries.map(({ menu }) => menu)).toEqual([
@@ -77,7 +46,7 @@ describe('usePickHistory', () => {
       '초밥',
     ])
     expect(result.current.current?.menu).toBe('초밥')
-    expect(result.current.canForward).toBe(false)
+    expect(result.current.index).toBe(3)
   })
 
   it('기록 중 하나를 골라 그 결과를 보여준다', () => {
