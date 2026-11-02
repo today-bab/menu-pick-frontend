@@ -17,6 +17,15 @@
   --color-gray-700: #4e5968;
   --color-gray-900: #191f28;
   --color-map-bg: #f4f7f2;
+
+  /* 시트가 아래에서 올라온다. 움직임 줄이기 설정이면 motion-safe로 건너뛴다. */
+  --animate-sheet-up: sheet-up 200ms ease-out;
+  @keyframes sheet-up {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+  }
 }
 
 @layer base {
