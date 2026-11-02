@@ -131,8 +131,12 @@ function App() {
           <SheetContent
             footer={
               <>
-                {notice && (
-                  <p role="alert" className="text-center text-red-600">
+                {/* 보던 결과가 있으면 결과는 그대로 두고 버튼 바로 위에 얇게 알린다. */}
+                {data && notice && (
+                  <p
+                    role="alert"
+                    className="rounded-[10px] bg-gray-100 px-3 py-2.5 text-xs text-gray-700"
+                  >
                     {notice}
                   </p>
                 )}
@@ -154,11 +158,27 @@ function App() {
             }
           >
             {data ? (
-              <MenuResult
-                result={data}
-                selected={selected}
-                onSelect={selectRestaurant}
-              />
+              // 다시 뽑는 동안에는 보던 결과를 흐리게 남겨 고르는 중임을 보여준다.
+              <div
+                aria-busy={isPending}
+                className={`flex min-h-0 flex-1 flex-col transition-opacity ${
+                  isPending ? 'opacity-40' : ''
+                }`}
+              >
+                <MenuResult
+                  result={data}
+                  selected={selected}
+                  onSelect={selectRestaurant}
+                />
+              </div>
+            ) : notice ? (
+              // 보여줄 결과가 없으면 메뉴 이름 자리에 안내를 띄운다.
+              <p
+                role="alert"
+                className="py-3 text-center text-[15px] font-medium text-gray-900"
+              >
+                {notice}
+              </p>
             ) : (
               <p className="py-2 text-center text-[15px] text-gray-700">
                 근처 1km 안에서 골라 드려요

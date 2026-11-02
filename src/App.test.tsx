@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { http, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import type { MenuCategory, PickResult } from './api/types'
@@ -263,6 +263,53 @@ describe('App', () => {
       '음식점이 없어요',
     )
     expect(screen.getByRole('heading', { name: '냉면' })).toBeInTheDocument()
+  })
+
+  it('뽑기 전에는 어디서 고르는지 알려준다', async () => {
+    await renderApp()
+
+    expect(screen.getByText('근처 1km 안에서 골라 드려요')).toBeInTheDocument()
+  })
+
+  it('결과 없이 실패하면 안내 문구가 시트의 메뉴 자리를 대신한다', async () => {
+    server.use(
+      http.get(
+        '*/api/menus/pick',
+        () => new HttpResponse(null, { status: 404 }),
+      ),
+    )
+    const user = await renderApp()
+
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '근처 1km 안에 음식점이 없어요.',
+    )
+    expect(
+      screen.queryByText('근처 1km 안에서 골라 드려요'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('다시 뽑는 동안 보던 결과를 흐리게 남긴다', async () => {
+    respondInOrder(naengmyeon)
+    const user = await renderApp()
+    await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
+    await screen.findByRole('heading', { name: '냉면' })
+    server.use(
+      http.get('*/api/menus/pick', async () => {
+        await delay('infinite')
+        return HttpResponse.json(donkatsu)
+      }),
+    )
+
+    await user.click(screen.getByRole('button', { name: '다시 뽑기' }))
+
+    expect(
+      await screen.findByRole('button', { name: '고르는 중…' }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('region', { name: '뽑힌 메뉴' }).parentElement,
+    ).toHaveAttribute('aria-busy', 'true')
   })
 
   it('접속할 때 위치 권한을 거부하면 기본 위치 지도와 함께 안내를 보여준다', async () => {
