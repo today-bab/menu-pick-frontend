@@ -10,6 +10,7 @@ import { OverlaySheet } from './components/OverlaySheet'
 import { RestaurantMap } from './components/RestaurantMap'
 import { useMenuExclusions } from './exclusions/useMenuExclusions'
 import { usePickHistory } from './history/usePickHistory'
+import { DEFAULT_LOCATION } from './location/defaultLocation'
 import {
   useGeolocation,
   type GeolocationStatus,
@@ -52,6 +53,8 @@ function App() {
 
   // 새로 뽑다 실패해도 보던 결과는 기록에 남아 있어 그대로 보여준다.
   const data = history.current
+  // 위치를 모르는 동안에도 지도는 늘 보여주고, 그때는 기본 위치를 가운데 둔다.
+  const center = coordinates ?? DEFAULT_LOCATION
 
   // 따로 고르지 않았으면 가장 가까운 가게를 선택한 것으로 본다.
   const selected =
@@ -111,35 +114,29 @@ function App() {
         </div>
       </header>
 
-      {data && (
+      {data ? (
         <MenuResult
           result={data}
           selected={selected}
           onSelect={selectRestaurant}
         >
-          {coordinates && (
-            <RestaurantMap
-              me={coordinates}
-              restaurants={data.restaurants}
-              selected={selected}
-              onSelect={selectRestaurant}
-            />
-          )}
-        </MenuResult>
-      )}
-      {!data &&
-        (coordinates ? (
           <RestaurantMap
+            center={center}
             me={coordinates}
-            restaurants={[]}
-            selected={null}
-            onSelect={() => {}}
+            restaurants={data.restaurants}
+            selected={selected}
+            onSelect={selectRestaurant}
           />
-        ) : (
-          status === 'locating' && (
-            <div className="h-72 w-full animate-pulse rounded-xl bg-neutral-100" />
-          )
-        ))}
+        </MenuResult>
+      ) : (
+        <RestaurantMap
+          center={center}
+          me={coordinates}
+          restaurants={[]}
+          selected={null}
+          onSelect={() => {}}
+        />
+      )}
       <OverlaySheet
         title="이번에 뽑은 메뉴"
         open={openSheet === 'history'}

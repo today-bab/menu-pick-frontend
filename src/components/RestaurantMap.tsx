@@ -9,7 +9,10 @@ import type { Restaurant } from '../api/types'
 import type { Coordinates } from '../location/useGeolocation'
 
 type RestaurantMapProps = {
-  me: Coordinates
+  /** 가게가 없을 때 지도 가운데에 둘 곳. */
+  center: Coordinates
+  /** 내 위치. 모르면 null이고 내 위치 점을 그리지 않는다. */
+  me: Coordinates | null
   restaurants: Restaurant[]
   selected: Restaurant | null
   onSelect: (restaurant: Restaurant) => void
@@ -18,6 +21,7 @@ type RestaurantMapProps = {
 const mapBox = 'h-72 w-full overflow-hidden rounded-xl'
 
 export function RestaurantMap({
+  center,
   me,
   restaurants,
   selected,
@@ -33,17 +37,17 @@ export function RestaurantMap({
     if (!map) {
       return
     }
-    // 점이 하나뿐이면 setBounds가 최대로 확대해 버려서 내 위치만 가운데 둔다.
+    // 점이 하나뿐이면 setBounds가 최대로 확대해 버려서 가운데만 맞춘다.
     if (restaurants.length === 0) {
-      map.setCenter(new kakao.maps.LatLng(me.lat, me.lng))
+      map.setCenter(new kakao.maps.LatLng(center.lat, center.lng))
       return
     }
     const bounds = new kakao.maps.LatLngBounds()
-    for (const { lat, lng } of [me, ...restaurants]) {
+    for (const { lat, lng } of me ? [me, ...restaurants] : restaurants) {
       bounds.extend(new kakao.maps.LatLng(lat, lng))
     }
     map.setBounds(bounds)
-  }, [map, me, restaurants])
+  }, [map, center, me, restaurants])
 
   useEffect(() => {
     if (map && selected) {
@@ -65,13 +69,15 @@ export function RestaurantMap({
   }
 
   return (
-    <KakaoMap center={me} level={5} onCreate={setMap} className={mapBox}>
-      <CustomOverlayMap position={me}>
-        <div
-          aria-label="내 위치"
-          className="size-4 rounded-full border-2 border-white bg-blue-500 shadow"
-        />
-      </CustomOverlayMap>
+    <KakaoMap center={center} level={5} onCreate={setMap} className={mapBox}>
+      {me && (
+        <CustomOverlayMap position={me}>
+          <div
+            aria-label="내 위치"
+            className="size-4 rounded-full border-2 border-white bg-blue-500 shadow"
+          />
+        </CustomOverlayMap>
+      )}
 
       {restaurants.map((restaurant) => (
         <MapMarker

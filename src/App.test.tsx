@@ -265,12 +265,12 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: '냉면' })).toBeInTheDocument()
   })
 
-  it('접속할 때 위치 권한을 거부하면 지도 대신 안내를 보여준다', async () => {
+  it('접속할 때 위치 권한을 거부하면 기본 위치 지도와 함께 안내를 보여준다', async () => {
     stubLocation(1)
     await renderApp()
 
     expect(await screen.findByRole('alert')).toHaveTextContent('위치 권한')
-    expect(screen.queryByTestId('map')).not.toBeInTheDocument()
+    expect(screen.getByTestId('map')).toBeInTheDocument()
   })
 
   it('근처에 음식점이 없으면 안내를 보여준다', async () => {
