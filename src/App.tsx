@@ -120,22 +120,26 @@ function App() {
           selected={selected}
           onSelect={selectRestaurant}
         >
+          <div className="h-72 w-full overflow-hidden rounded-xl">
+            <RestaurantMap
+              center={center}
+              me={coordinates}
+              restaurants={data.restaurants}
+              selected={selected}
+              onSelect={selectRestaurant}
+            />
+          </div>
+        </MenuResult>
+      ) : (
+        <div className="h-72 w-full overflow-hidden rounded-xl">
           <RestaurantMap
             center={center}
             me={coordinates}
-            restaurants={data.restaurants}
-            selected={selected}
-            onSelect={selectRestaurant}
+            restaurants={[]}
+            selected={null}
+            onSelect={() => {}}
           />
-        </MenuResult>
-      ) : (
-        <RestaurantMap
-          center={center}
-          me={coordinates}
-          restaurants={[]}
-          selected={null}
-          onSelect={() => {}}
-        />
+        </div>
       )}
       <OverlaySheet
         title="이번에 뽑은 메뉴"
