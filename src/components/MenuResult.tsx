@@ -21,14 +21,12 @@ export function MenuResult({
 }: MenuResultProps) {
   return (
     <section aria-label="뽑힌 메뉴" className="w-full">
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">
-        오늘의 메뉴
-      </p>
+      <p className="text-sm text-neutral-500">오늘의 메뉴</p>
       <h2 className="mt-1 text-4xl font-bold">{result.menu}</h2>
 
       <div className="mt-6">{children}</div>
 
-      <ul className="mt-4 divide-y divide-neutral-200 dark:divide-neutral-800">
+      <ul className="mt-4 divide-y divide-neutral-200">
         {result.restaurants.map((restaurant) => {
           const isSelected = restaurant === selected
           return (
@@ -39,12 +37,12 @@ export function MenuResult({
                 onClick={() => onSelect(restaurant)}
                 className={`flex flex-1 items-center justify-between py-3 text-left ${
                   isSelected
-                    ? 'font-semibold text-orange-600 dark:text-orange-400'
-                    : 'hover:text-orange-600 dark:hover:text-orange-400'
+                    ? 'font-semibold text-orange-600'
+                    : 'hover:text-orange-600'
                 }`}
               >
                 <span>{restaurant.name}</span>
-                <span className="text-sm font-normal text-neutral-500 dark:text-neutral-400">
+                <span className="text-sm font-normal text-neutral-500">
                   {formatDistance(restaurant.distanceMeters)}
                 </span>
               </button>
@@ -53,7 +51,7 @@ export function MenuResult({
                 target="_blank"
                 rel="noreferrer"
                 aria-label={`${restaurant.name} 카카오맵에서 보기`}
-                className="shrink-0 rounded-lg border border-neutral-300 px-2 py-1 text-xs hover:border-orange-500 hover:text-orange-600 dark:border-neutral-700"
+                className="shrink-0 rounded-lg border border-neutral-300 px-2 py-1 text-xs hover:border-orange-500 hover:text-orange-600"
               >
                 카카오맵
               </a>

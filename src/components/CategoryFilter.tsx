@@ -12,10 +12,10 @@ type CategoryFilterProps = {
 
 const chipClass = 'rounded-full border px-3 py-1 text-sm'
 const includedClass =
-  'border-neutral-300 hover:border-orange-500 hover:text-orange-600 dark:border-neutral-700 dark:hover:text-orange-400'
+  'border-neutral-300 hover:border-orange-500 hover:text-orange-600'
 // 빠진 것은 흐리게 긋고, 눌러서 다시 넣을 수 있다는 걸 테두리로 남긴다.
 const excludedClass =
-  'border-neutral-200 bg-neutral-100 text-neutral-400 line-through dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-500'
+  'border-neutral-200 bg-neutral-100 text-neutral-400 line-through'
 
 /**
  * 근처 메뉴를 대분류별로 보여주고, 추천에서 뺄 대분류나 메뉴를 고르게 한다.
@@ -38,12 +38,12 @@ export function CategoryFilter({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((open) => !open)}
-        className="flex w-full items-center justify-between rounded-xl border border-neutral-300 px-4 py-2 hover:border-orange-500 dark:border-neutral-700"
+        className="flex w-full items-center justify-between rounded-xl border border-neutral-300 px-4 py-2 hover:border-orange-500"
       >
         <span>
           제외할 메뉴
           {excludedCount > 0 && (
-            <span className="ml-1 text-orange-600 dark:text-orange-400">
+            <span className="ml-1 text-orange-600">
               ({excludedCount}개 제외 중)
             </span>
           )}
