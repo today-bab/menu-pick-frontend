@@ -4,6 +4,7 @@ import { useMenuCategories } from './api/useMenuCategories'
 import { usePickMenu } from './api/usePickMenu'
 import { CategoryFilter } from './components/CategoryFilter'
 import { CountButton } from './components/CountButton'
+import { HistoryList } from './components/HistoryList'
 import { MenuResult } from './components/MenuResult'
 import { OverlaySheet } from './components/OverlaySheet'
 import { RestaurantMap } from './components/RestaurantMap'
@@ -29,9 +30,6 @@ const errorNotices: Record<PickErrorKind, string> = {
   unknown: '알 수 없는 오류가 났어요.',
 }
 
-const historyButtonClass =
-  'flex-1 rounded-xl border border-neutral-300 py-2 hover:border-orange-500 hover:text-orange-600 disabled:pointer-events-none disabled:opacity-40'
-
 function App() {
   const { status, coordinates, locate } = useGeolocation()
   const { mutate, error, isPending } = usePickMenu()
@@ -40,7 +38,9 @@ function App() {
   const { data: categories } = useMenuCategories(coordinates)
   const { exclusions, toggleCuisine, toggleMenu } = useMenuExclusions()
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
-  const [openSheet, setOpenSheet] = useState<'exclusions' | null>(null)
+  const [openSheet, setOpenSheet] = useState<'exclusions' | 'history' | null>(
+    null,
+  )
   // 시트가 열릴 때마다 포커스를 다시 잡지 않도록 닫기 함수는 한 번만 만든다.
   const closeSheet = useCallback(() => setOpenSheet(null), [])
   const excludedCount = exclusions.cuisines.length + exclusions.menus.length
@@ -92,14 +92,23 @@ function App() {
     <main className="mx-auto flex min-h-svh max-w-md flex-col items-center gap-8 px-4 pt-12">
       <header className="flex w-full items-center justify-between">
         <h1 className="text-2xl font-bold">오늘 뭐 먹지</h1>
-        {/* 카테고리를 못 불러오면 고를 것이 없으니 제외 버튼도 숨긴다. */}
-        {categories && (
+        <div className="flex gap-2">
+          {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
           <CountButton
-            label="제외"
-            count={excludedCount}
-            onClick={() => setOpenSheet('exclusions')}
+            label="기록"
+            count={history.entries.length}
+            onClick={() => setOpenSheet('history')}
+            disabled={busy || history.entries.length === 0}
           />
-        )}
+          {/* 카테고리를 못 불러오면 고를 것이 없으니 제외 버튼도 숨긴다. */}
+          {categories && (
+            <CountButton
+              label="제외"
+              count={excludedCount}
+              onClick={() => setOpenSheet('exclusions')}
+            />
+          )}
+        </div>
       </header>
 
       {data && (
@@ -131,27 +140,20 @@ function App() {
             <div className="h-72 w-full animate-pulse rounded-xl bg-neutral-100" />
           )
         ))}
-      {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
-      {history.entries.length > 1 && (
-        <nav aria-label="이전 결과" className="flex w-full gap-2">
-          <button
-            type="button"
-            onClick={() => showResult(history.back)}
-            disabled={busy || !history.canBack}
-            className={historyButtonClass}
-          >
-            ← 이전
-          </button>
-          <button
-            type="button"
-            onClick={() => showResult(history.forward)}
-            disabled={busy || !history.canForward}
-            className={historyButtonClass}
-          >
-            다음 →
-          </button>
-        </nav>
-      )}
+      <OverlaySheet
+        title="이번에 뽑은 메뉴"
+        open={openSheet === 'history'}
+        onClose={closeSheet}
+      >
+        <HistoryList
+          entries={history.entries}
+          currentIndex={history.index}
+          onSelect={(index) => {
+            showResult(() => history.select(index))
+            closeSheet()
+          }}
+        />
+      </OverlaySheet>
       {categories && (
         <OverlaySheet
           title="제외할 메뉴"
