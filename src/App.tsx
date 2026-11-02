@@ -154,13 +154,11 @@ function App() {
             }
           >
             {data ? (
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                <MenuResult
-                  result={data}
-                  selected={selected}
-                  onSelect={selectRestaurant}
-                />
-              </div>
+              <MenuResult
+                result={data}
+                selected={selected}
+                onSelect={selectRestaurant}
+              />
             ) : (
               <p className="py-2 text-center text-[15px] text-gray-700">
                 근처 1km 안에서 골라 드려요
