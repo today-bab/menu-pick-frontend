@@ -1,7 +1,26 @@
 @import 'tailwindcss';
 
+/*
+ * 디자인 토큰. Figma(todaybab 디자인)의 변수 이름과 같게 맞춰서
+ * 시안의 `orange/500`은 `bg-orange-500`, `gray/700`은 `text-gray-700`처럼 그대로 쓴다.
+ */
+@theme {
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+
+  --color-orange-50: #fff3ea;
+  --color-orange-500: #ff6b00;
+  --color-gray-100: #f2f4f6;
+  --color-gray-200: #e5e8eb;
+  --color-gray-500: #8b95a1;
+  --color-gray-700: #4e5968;
+  --color-gray-900: #191f28;
+  --color-map-bg: #f4f7f2;
+}
+
 @layer base {
   body {
-    @apply bg-white text-neutral-900;
+    @apply bg-white text-gray-900;
   }
 }
