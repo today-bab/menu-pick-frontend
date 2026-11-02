@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -199,46 +199,50 @@ describe('App', () => {
     expect(excludes).toEqual([null, '냉면'])
   })
 
-  it('이전 결과로 돌아갔다가 다시 앞으로 갈 때 서버에 요청하지 않는다', async () => {
+  it('뽑기 전에는 기록 버튼을 누를 수 없다', async () => {
+    await renderApp()
+
+    expect(screen.getByRole('button', { name: '기록' })).toBeDisabled()
+  })
+
+  it('기록에서 이전 결과로 돌아갈 때 서버에 요청하지 않는다', async () => {
     const excludes = respondInOrder(naengmyeon, donkatsu)
     const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
     await user.click(await screen.findByRole('button', { name: /함흥냉면/ }))
     await user.click(screen.getByRole('button', { name: '다시 뽑기' }))
-    expect(
-      await screen.findByRole('heading', { name: '돈까스' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '다음 →' })).toBeDisabled()
+    await screen.findByRole('heading', { name: '돈까스' })
 
-    await user.click(screen.getByRole('button', { name: '← 이전' }))
+    await user.click(screen.getByRole('button', { name: '기록 2' }))
+    const sheet = screen.getByRole('dialog', { name: '이번에 뽑은 메뉴' })
+    await user.click(within(sheet).getByRole('button', { name: /냉면/ }))
 
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '냉면' })).toBeInTheDocument()
     // 결과가 바뀌면 직접 골랐던 가게 대신 가장 가까운 가게로 돌아간다.
     expect(screen.getByTestId('map')).toHaveTextContent('평양면옥')
-    expect(screen.getByRole('button', { name: '← 이전' })).toBeDisabled()
-
-    await user.click(screen.getByRole('button', { name: '다음 →' }))
-
-    expect(screen.getByRole('heading', { name: '돈까스' })).toBeInTheDocument()
     expect(excludes).toEqual([null, '냉면'])
   })
 
-  it('이전 결과를 보다가 다시 뽑으면 보고 있던 메뉴를 제외하고 그 뒤 기록은 버린다', async () => {
+  it('이전 결과를 보다가 다시 뽑으면 보고 있던 메뉴를 제외하고 기록은 그대로 쌓는다', async () => {
     const excludes = respondInOrder(naengmyeon, donkatsu, donkatsu)
     const user = await renderApp()
 
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
     await user.click(await screen.findByRole('button', { name: '다시 뽑기' }))
     await screen.findByRole('heading', { name: '돈까스' })
-    await user.click(screen.getByRole('button', { name: '← 이전' }))
+    await user.click(screen.getByRole('button', { name: '기록 2' }))
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: /냉면/ }),
+    )
     await user.click(screen.getByRole('button', { name: '다시 뽑기' }))
 
     expect(
       await screen.findByRole('heading', { name: '돈까스' }),
     ).toBeInTheDocument()
     expect(excludes).toEqual([null, '냉면', '냉면'])
-    expect(screen.getByRole('button', { name: '다음 →' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '기록 3' })).toBeInTheDocument()
   })
 
   it('다시 뽑다 실패해도 보던 결과는 남는다', async () => {
@@ -289,12 +293,14 @@ describe('App', () => {
     const requests = recordPicks(naengmyeon)
     const user = await renderApp()
 
-    await user.click(await screen.findByRole('button', { name: /제외할 메뉴/ }))
-    await user.click(screen.getByRole('button', { name: '중식 전체' }))
-    await user.click(screen.getByRole('button', { name: '국밥' }))
-    expect(
-      screen.getByRole('button', { name: /제외할 메뉴/ }),
-    ).toHaveTextContent('(2개 제외 중)')
+    await user.click(await screen.findByRole('button', { name: '제외' }))
+    const sheet = screen.getByRole('dialog', { name: '제외할 메뉴' })
+    await user.click(within(sheet).getByRole('button', { name: '중식 전체' }))
+    await user.click(within(sheet).getByRole('button', { name: '국밥' }))
+    await user.click(within(sheet).getByRole('button', { name: '닫기' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '제외 2' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '메뉴 뽑기' }))
 
     await screen.findByRole('heading', { name: '냉면' })
@@ -347,7 +353,7 @@ describe('App', () => {
       await screen.findByRole('heading', { name: '냉면' }),
     ).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: /제외할 메뉴/ }),
+      screen.queryByRole('button', { name: /^제외/ }),
     ).not.toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(requests[0].has('excludeCuisine')).toBe(false)
