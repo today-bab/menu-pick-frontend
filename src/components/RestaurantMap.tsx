@@ -54,18 +54,14 @@ export function RestaurantMap({
   if (error) {
     return (
       <div
-        className={`${mapBox} flex items-center justify-center bg-neutral-100 text-sm text-neutral-500 dark:bg-neutral-900`}
+        className={`${mapBox} flex items-center justify-center bg-neutral-100 text-sm text-neutral-500`}
       >
         지도를 불러오지 못했어요.
       </div>
     )
   }
   if (loading) {
-    return (
-      <div
-        className={`${mapBox} animate-pulse bg-neutral-100 dark:bg-neutral-900`}
-      />
-    )
+    return <div className={`${mapBox} animate-pulse bg-neutral-100`} />
   }
 
   return (

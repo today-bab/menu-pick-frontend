@@ -28,7 +28,7 @@ const errorNotices: Record<PickErrorKind, string> = {
 }
 
 const historyButtonClass =
-  'flex-1 rounded-xl border border-neutral-300 py-2 hover:border-orange-500 hover:text-orange-600 disabled:pointer-events-none disabled:opacity-40 dark:border-neutral-700'
+  'flex-1 rounded-xl border border-neutral-300 py-2 hover:border-orange-500 hover:text-orange-600 disabled:pointer-events-none disabled:opacity-40'
 
 function App() {
   const { status, coordinates, locate } = useGeolocation()
@@ -112,7 +112,7 @@ function App() {
           />
         ) : (
           status === 'locating' && (
-            <div className="h-72 w-full animate-pulse rounded-xl bg-neutral-100 dark:bg-neutral-900" />
+            <div className="h-72 w-full animate-pulse rounded-xl bg-neutral-100" />
           )
         ))}
       {/* 뽑는 중에 옮겨 다니면 제외한 메뉴와 보이는 메뉴가 어긋나서 막아 둔다. */}
@@ -149,12 +149,9 @@ function App() {
         밑으로 지나가는 내용이 비치지 않도록 페이지와 같은 배경을 깔고,
         오류 안내도 버튼과 함께 붙여서 내용에 묻혀 안 보이는 일이 없게 한다.
       */}
-      <div className="sticky bottom-0 z-10 flex w-full flex-col gap-3 bg-white pt-3 pb-6 dark:bg-neutral-950">
+      <div className="sticky bottom-0 z-10 flex w-full flex-col gap-3 bg-white pt-3 pb-6">
         {notice && (
-          <p
-            role="alert"
-            className="text-center text-red-600 dark:text-red-400"
-          >
+          <p role="alert" className="text-center text-red-600">
             {notice}
           </p>
         )}
