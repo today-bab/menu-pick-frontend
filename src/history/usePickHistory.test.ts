@@ -63,7 +63,7 @@ describe('usePickHistory', () => {
     expect(result.current.index).toBe(0)
   })
 
-  it('뒤로 간 상태에서 결과를 더하면 그 뒤의 결과는 버린다', () => {
+  it('뒤로 간 상태에서 결과를 더해도 기록을 버리지 않고 맨 뒤에 더한다', () => {
     const result = renderHistory('냉면', '돈까스', '국밥')
 
     act(() => result.current.back())
@@ -72,10 +72,30 @@ describe('usePickHistory', () => {
 
     expect(result.current.entries.map(({ menu }) => menu)).toEqual([
       '냉면',
+      '돈까스',
+      '국밥',
       '초밥',
     ])
     expect(result.current.current?.menu).toBe('초밥')
     expect(result.current.canForward).toBe(false)
+  })
+
+  it('기록 중 하나를 골라 그 결과를 보여준다', () => {
+    const result = renderHistory('냉면', '돈까스', '국밥')
+
+    act(() => result.current.select(1))
+
+    expect(result.current.current?.menu).toBe('돈까스')
+    expect(result.current.index).toBe(1)
+  })
+
+  it('없는 기록을 고르면 그대로 있는다', () => {
+    const result = renderHistory('냉면', '돈까스')
+
+    act(() => result.current.select(5))
+    act(() => result.current.select(-1))
+
+    expect(result.current.current?.menu).toBe('돈까스')
   })
 
   it(`최근 ${MAX_HISTORY}개까지만 남긴다`, () => {

@@ -10,8 +10,8 @@ type History = {
 }
 
 /**
- * 뽑은 결과를 브라우저 뒤로/앞으로처럼 오갈 수 있게 메모리에 쌓는다.
- * 이전 결과를 보는 중에 새로 뽑으면 그 뒤의 결과는 버린다.
+ * 이번 방문에서 뽑은 결과를 메모리에 쌓는다 (새로고침하면 사라진다).
+ * 이전 결과를 보는 중에 새로 뽑아도 기록은 버리지 않고 맨 뒤에 더한다.
  */
 export function usePickHistory() {
   const [{ entries, index }, setHistory] = useState<History>({
@@ -20,10 +20,18 @@ export function usePickHistory() {
   })
 
   const add = useCallback((result: PickResult) => {
-    setHistory(({ entries, index }) => {
-      const next = [...entries.slice(0, index + 1), result].slice(-MAX_HISTORY)
+    setHistory(({ entries }) => {
+      const next = [...entries, result].slice(-MAX_HISTORY)
       return { entries: next, index: next.length - 1 }
     })
+  }, [])
+
+  const select = useCallback((target: number) => {
+    setHistory((history) =>
+      target >= 0 && target < history.entries.length
+        ? { ...history, index: target }
+        : history,
+    )
   }, [])
 
   const back = useCallback(() => {
@@ -47,6 +55,7 @@ export function usePickHistory() {
     canBack: index > 0,
     canForward: index < entries.length - 1,
     add,
+    select,
     back,
     forward,
   }
