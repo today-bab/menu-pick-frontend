@@ -14,6 +14,6 @@ Closes #
 
 ## 체크리스트
 
-- [ ] PR 제목이 `<타입>: <한국어 요약>` 형식이다
+- [ ] PR 제목이 `[<타입>] <한국어 요약>` 형식이다 (예: `[Feat] 뽑기 버튼 고정`)
 - [ ] 커밋 하나에 하나의 책임만 담았다
 - [ ] `pnpm lint && pnpm format:check && pnpm test && pnpm build`가 통과한다
